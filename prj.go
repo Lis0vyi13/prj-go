@@ -1,52 +1,155 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
+	"os"
+	"prj-go/domain"
+	"sort"
 	"strconv"
 	"time"
 )
 
+const (
+	totalPoints       = 10
+	pointsPerQuestion = 10
+)
+
+var id uint64 = 1
+
 func main() {
-    fmt.Println("Вітаємо у грі MATHREVENGE!")
+	fmt.Println("Вітаємо у грі MATHREVENGE!")
+	time.Sleep(1 * time.Second)
 
-    countdown := 5
+	var users []domain.User
+	users = append(users, domain.User{
+		Id:   1,
+		Name: "Mykola",
+		Time: 5 * time.Second,
+	})
+	users = append(users, domain.User{
+		Id:   2,
+		Name: "Vasyl",
+		Time: 2 * time.Second,
+	})
+	users = append(users, domain.User{
+		Id:   3,
+		Name: "Niko",
+		Time: 10 * time.Second,
+	})
+	sortAndSave(users)
 
-    fmt.Println("Гра розпочнеться через кілька секунд...")
+	// for {
+	// 	menu()
 
-    for i := countdown; i > 0; i-- {
-        fmt.Print(i,"...\n")
-        time.Sleep(time.Second)
-    }
-	start := time.Now();
+	// 	choice := ""
+	// 	fmt.Scan(&choice)
 
-	fmt.Println("Гру розпочато!")
+	// 	switch choice {
+	// 	case "1":
+	// 		user := play()
+	// 		users = append(users, user)
+	// 	case "2":
+	// 		for i, user := range users {
+	// 			fmt.Printf(
+	// 				"i: %v, id: %v, name: %s, time: %v\n",
+	// 				i, user.Id, user.Name, user.Time,
+	// 			)
+	// 		}
+	// 	case "3":
+	// 		return
+	// 	default:
+	// 		fmt.Println("Зробіть коректний вибір!")
+	// 	}
+	// }
+
+}
+
+func menu() {
+	fmt.Println("1. Почати гру")
+	fmt.Println("2. Переглянути рейтинг")
+	fmt.Println("3. Вийти")
+}
+
+func play() domain.User {
+	for i := 3; i > 0; i-- {
+		fmt.Println(i)
+		time.Sleep(1 * time.Second)
+	}
+
 	myPoints := 0
-	const (totalPoints = 50 
-		   pointsPerQuestion = 5)
+	start := time.Now()
 	for myPoints < totalPoints {
-		x,y := rand.Intn(100),rand.Intn(100)
+		x, y := rand.Intn(100), rand.Intn(100)
 		fmt.Printf("%v + %v = ", x, y)
+
 		ans := ""
 		fmt.Scan(&ans)
+
 		ansInt, err := strconv.Atoi(ans)
 		if err != nil {
 			fmt.Println("Спробуй ще!")
 		} else {
-			if (ansInt == x + y) {
+			if ansInt == x+y {
 				myPoints += pointsPerQuestion
 				points := totalPoints - myPoints
-				fmt.Println("Правильно, ти набрав", myPoints,"очок")
+				fmt.Println("Правильно, ти набрав", myPoints, "очок!")
 				fmt.Printf("Залишилось набрати %v!\n", points)
 			} else {
-				fmt.Println("Спробуй ще")
+				fmt.Println("Спробуй ще!")
 			}
 		}
-	}		
+	}
 	end := time.Now()
-	timeSpend := end.Sub(start)
+	timeSpent := end.Sub(start)
 
-	fmt.Printf("Молодчинка, впорався всього за %v", timeSpend)
-	time.Sleep(5 * time.Second)
+	fmt.Printf("Молодчинка, впорався всього за %v!", timeSpent)
+	fmt.Println("Введіть своє ім'я:")
 
+	name := ""
+	fmt.Scan(&name)
+
+	// var user domain.User
+	// user.Id = id
+	// user.Name = name
+	// user.Time = timeSpent
+
+	user := domain.User{
+		Id:   id,
+		Name: name,
+		Time: timeSpent,
+	}
+	id++
+
+	return user
+}
+
+func sortAndSave(users []domain.User) {
+	sort.SliceStable(users, func(i, j int) bool {
+		return users[i].Time < users[j].Time
+	})
+
+	file, err := os.OpenFile(
+		"users.json",
+		os.O_RDWR|os.O_CREATE|os.O_TRUNC,
+		0755)
+	if err != nil {
+		fmt.Printf("Error: %s", err)
+		return
+	}
+
+	defer func(f *os.File) {
+		err = f.Close()
+		if err != nil {
+			fmt.Printf("Error: %s", err)
+		}
+	}(file)
+
+	encoder := json.NewEncoder(file)
+	err = encoder.Encode(users)
+	if err != nil {
+		fmt.Printf("Error: %s", err)
+		return
+	}
 }
