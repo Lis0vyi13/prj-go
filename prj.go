@@ -22,23 +22,12 @@ func main() {
 	fmt.Println("Вітаємо у грі MATHREVENGE!")
 	time.Sleep(1 * time.Second)
 
-	var users []domain.User
-	users = append(users, domain.User{
-		Id:   1,
-		Name: "Mykola",
-		Time: 5 * time.Second,
-	})
-	users = append(users, domain.User{
-		Id:   2,
-		Name: "Vasyl",
-		Time: 2 * time.Second,
-	})
-	users = append(users, domain.User{
-		Id:   3,
-		Name: "Niko",
-		Time: 10 * time.Second,
-	})
-	sortAndSave(users)
+	users := getUsers()
+	for _, user := range users {
+		if (user.Id >= id) {
+			id = user.Id + 1
+		}
+	}
 
 	for {
 		menu()
@@ -51,8 +40,7 @@ func main() {
 			user := play()
 			users = getUsers()
 			users = append(users, user)
-			sortAndSave(users) 
-
+			sortAndSave(users)
 		case "2":
 			users = getUsers()
 			for i, user := range users {
@@ -161,27 +149,27 @@ func sortAndSave(users []domain.User) {
 func getUsers() []domain.User {
 	var users []domain.User
 
-	info, err := os.Stat("users.json");
-
+	info, err := os.Stat("users.json")
 	if err != nil {
 		if os.IsNotExist(err) {
 			_, err := os.Create("users.json")
 			if err != nil {
 				fmt.Printf("Error: %s", err)
-				return nil;
+				return nil
 			}
-			return nil;
+			return nil
 		}
 		fmt.Printf("Error: %s", err)
-		return nil;
+		return nil
 	}
 
 	if info.Size() != 0 {
 		file, err := os.Open("users.json")
 		if err != nil {
 			fmt.Printf("Error: %s", err)
-			return nil;
+			return nil
 		}
+
 		defer func(f *os.File) {
 			err = f.Close()
 			if err != nil {
@@ -193,9 +181,9 @@ func getUsers() []domain.User {
 		err = decoder.Decode(&users)
 		if err != nil {
 			fmt.Printf("Error: %s", err)
-			return nil;
+			return nil
 		}
 	}
 
-	return users;
+	return users
 }
