@@ -108,20 +108,21 @@ func TaskRouter(r chi.Router, tc controllers.TaskController) {
 			"/save",
 			tc.Save(),
 		)
+		apiRouter.Put(
+			"/update",
+			tc.Update(),
+		)
 		apiRouter.Get(
-			"/get",
+			"/find_by_id",
 			tc.FindById(),
 		)
 		apiRouter.Get(
-			"/get",
+			"/find_by_status",
 			tc.FindByStatus(),
 		)
-		apiRouter.Put(
-			"/edit",
-			tc.Edit(),
-		)
+		
 		apiRouter.Delete(
-			"/del",
+			"/delete",
 			tc.Delete(),
 		)
 	})

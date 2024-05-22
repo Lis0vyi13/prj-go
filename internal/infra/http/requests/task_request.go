@@ -12,7 +12,7 @@ type TaskRequest struct {
 	Deadline    int64  `json:"deadline" validate:"required"`
 }
 
-type EditTaskRequest struct {
+type UpdateTaskRequest struct {
 	Id          uint64            `json:"id" validate:"required"`
 	Name        string            `json:"name"`
 	Description string            `json:"description"`
@@ -36,7 +36,7 @@ func (r TaskRequest) ToDomainModel() (interface{}, error) {
 	}, nil
 }
 
-func (r EditTaskRequest) ToDomainModel() (interface{}, error) {
+func (r UpdateTaskRequest) ToDomainModel() (interface{}, error) {
 	return domain.Task{
 		Id:          r.Id,
 		Name:        r.Name,

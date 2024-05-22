@@ -35,7 +35,9 @@ func Success(w http.ResponseWriter, body interface{}) {
 }
 
 // nolint
-func Create(w http.ResponseWriter, body interface{}) {
+
+
+func Created(w http.ResponseWriter, body interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 

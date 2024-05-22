@@ -42,13 +42,13 @@ func (c TaskController) Save() http.HandlerFunc {
 
 		var tDto resources.TaskDto
 		tDto = tDto.DomainToDto(task)
-		Create(w, tDto)
+		Created(w, tDto)
 	}
 }
 
-func (c TaskController) Edit() http.HandlerFunc {
+func (c TaskController) Update() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		task, err := requests.Bind(r, requests.EditTaskRequest{}, domain.Task{})
+		task, err := requests.Bind(r, requests.UpdateTaskRequest{}, domain.Task{})
 		if err != nil {
 			log.Printf("TaskController: %s", err)
 			BadRequest(w, err)
@@ -57,7 +57,7 @@ func (c TaskController) Edit() http.HandlerFunc {
 
 		user := r.Context().Value(UserKey).(domain.User)
 		task.UserId = user.Id
-		task, err = c.taskService.Edit(task)
+		task, err = c.taskService.Update(task)
 		if err != nil {
 			log.Printf("TaskController: %s", err)
 			InternalServerError(w, err)
@@ -66,7 +66,7 @@ func (c TaskController) Edit() http.HandlerFunc {
 
 		var tDto resources.TaskDto
 		tDto = tDto.DomainToDto(task)
-		Create(w, tDto)
+		Created(w, tDto)
 	}
 }
 

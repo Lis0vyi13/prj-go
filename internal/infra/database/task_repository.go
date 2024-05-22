@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/BohdanBoriak/boilerplate-go-back/internal/domain"
@@ -23,7 +24,7 @@ type task struct {
 
 type TaskRepository interface {
 	Save(t domain.Task) (domain.Task, error)
-	Edit(t domain.Task) (domain.Task, error)
+	Update(t domain.Task) (domain.Task, error)
 	FindById(id uint64, userId uint64) (domain.Task, error)
 	FindByStatus(userId uint64, status string) ([]domain.Task, error)
 	Delete(id uint64, userId uint64) error
@@ -53,12 +54,14 @@ func (r taskRepository) Save(t domain.Task) (domain.Task, error) {
 	return t, nil
 }
 
-func (r taskRepository) Edit(t domain.Task) (domain.Task, error) {
-
+func (r taskRepository) Update(t domain.Task) (domain.Task, error) {
 	var tsk task
 	result := r.coll.Find(db.Cond{"id": t.Id, "user_id": t.UserId})
 	err := result.One(&tsk)
 	if err != nil {
+		if err == db.ErrNoMoreRows {
+			return domain.Task{}, fmt.Errorf("not found")
+		}
 		return domain.Task{}, err
 	}
 
@@ -71,9 +74,13 @@ func (r taskRepository) Edit(t domain.Task) (domain.Task, error) {
 	if !t.Deadline.IsZero() {
 		tsk.Deadline = t.Deadline
 	}
-	if t.Status != "" && t.Status.IsStatusValid() {
+	if t.Status != "" {
+		if !t.Status.IsStatusValid() {
+			return domain.Task{}, fmt.Errorf("status is invalid")
+		}
 		tsk.Status = t.Status
 	}
+	
 	tsk.UpdatedDate = time.Now()
 
 	err = result.Update(&tsk)
@@ -94,7 +101,7 @@ func (r taskRepository) FindById(id uint64, userId uint64) (domain.Task, error) 
 	err := r.coll.Find(db.Cond{"id": id, "user_id": userId}).One(&tsk)
 	if err != nil {
 		if err == db.ErrNoMoreRows {
-			return domain.Task{}, nil
+			return domain.Task{}, fmt.Errorf("not found")
 		}
 		return domain.Task{}, err
 	}
@@ -106,6 +113,7 @@ func (r taskRepository) FindByStatus(userId uint64, status string) ([]domain.Tas
     var tasks []task
     err := r.coll.Find(db.Cond{"user_id": userId, "status": status}).All(&tasks)
     if err != nil {
+
         return nil, err
     }
     
@@ -118,12 +126,25 @@ func (r taskRepository) FindByStatus(userId uint64, status string) ([]domain.Tas
 }
 
 func (r taskRepository) Delete(id uint64, userId uint64) error {
-	err := r.coll.Find(db.Cond{"id": id, "user_id": userId}).Delete()
+	result := r.coll.Find(db.Cond{"id": id, "user_id": userId})
+
+	count, err := result.Count()
 	if err != nil {
-		return err
+		return fmt.Errorf("error counting elements: %w", err)
 	}
-	return nil
+
+	if count == 0 {
+		return fmt.Errorf("not found")
+	}
+
+	err = result.Delete()
+	if err != nil {
+		return fmt.Errorf("error deleting element: %w", err)
+	}
+
+	return nil 
 }
+
 
 func (r taskRepository) mapDomainToModel(t domain.Task) task {
 	return task{

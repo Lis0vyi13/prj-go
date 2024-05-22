@@ -9,7 +9,7 @@ import (
 
 type TaskService interface {
   Save(t domain.Task) (domain.Task, error)
-  Edit(t domain.Task) (domain.Task, error)
+  Update(t domain.Task) (domain.Task, error)
   FindById(id uint64, userId uint64) (domain.Task, error)
   FindByStatus(userId uint64, status string) ([]domain.Task, error)
   Delete(id uint64, userId uint64) error
@@ -34,8 +34,8 @@ func (s taskService) Save(t domain.Task) (domain.Task, error) {
   return task, nil
 }
 
-func (s taskService) Edit(t domain.Task) (domain.Task, error) {
-  task, err := s.taskRepo.Edit(t)
+func (s taskService) Update(t domain.Task) (domain.Task, error) {
+  task, err := s.taskRepo.Update(t)
   if err != nil {
     log.Printf("TaskService: %s", err)
     return domain.Task{}, err
